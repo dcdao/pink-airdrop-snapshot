@@ -32,13 +32,13 @@ jobs:
         run: cargo build --profile ci-release --locked --target ${{ matrix.target.name }}
       - name: Compress
         run: |
-          mv target/${{ matrix.target.name }}/ci-release/<NAME>${{ matrix.target.extension }} .
-          zstd --ultra -22 -o <NAME>-${{ matrix.target.name }}.zst <NAME>${{ matrix.target.extension }}
+          mv target/${{ matrix.target.name }}/ci-release/pas${{ matrix.target.extension }} .
+          zstd --ultra -22 -o pas-${{ matrix.target.name }}.zst pas${{ matrix.target.extension }}
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: <NAME>-${{ matrix.target.name }}
-          path: <NAME>-${{ matrix.target.name }}.zst
+          name: pas-${{ matrix.target.name }}
+          path: pas-${{ matrix.target.name }}.zst
           retention-days: 1
 
   release:
@@ -61,7 +61,7 @@ jobs:
       - name: Hash
         run: |
           mkdir -p artifacts
-          mv <NAME>-*/* artifacts/
+          mv pas-*/* artifacts/
           cd artifacts
           sha256sum * | tee ../SHA256
           md5sum * | tee ../MD5

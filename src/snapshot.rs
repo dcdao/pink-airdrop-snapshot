@@ -48,7 +48,7 @@ impl Pas {
 		while let Some(r) = storage.next().await {
 			match r {
 				Ok((k, v)) => {
-					let who = array_bytes::dyn2array!(&k[k.len() - 20..], 20);
+					let who = array_bytes::slice2array_unchecked::<_, 20>(&k[k.len() - 20..]);
 					let s = S::decode(&mut &*v.into_encoded()).unwrap();
 					let map = map.lock().await;
 
@@ -67,9 +67,10 @@ impl Pas {
 		// Snapshot target.
 		// `true` for RING and `false` for KTON.
 		ring: bool,
-		check_amount: bool,
+		// Check eligibility won't calculate the staked amount.
+		check_eligibility: bool,
 	) -> Result<()> {
-		let at = array_bytes::hex_into_unchecked::<H256, 32>(at);
+		let at = array_bytes::hex_n_into_unchecked::<_, H256, 32>(at);
 		let f1 = self
 			.iter_storage_with(
 				self.map.clone(),
@@ -77,27 +78,37 @@ impl Pas {
 				dynamic::storage("DarwiniaStaking", "Ledgers", <Vec<()>>::new()),
 				|mut map, who, ledger: Ledger| {
 					if ring {
-						if ledger.staked_ring > 0
-							&& (!check_amount || ledger.staked_ring >= RING_THRESHOLD)
+						// Check if eligibility needs to be checked and if it passes the threshold,
+						if (check_eligibility && ledger.staked_ring >= RING_THRESHOLD)
+							// or if it just needs to be greater than 0.
+							|| (!check_eligibility && ledger.staked_ring > 0)
 						{
-							map.entry(who)
-								.and_modify(|d| d.ring += ledger.staked_ring)
-								.or_insert_with(|| Data {
-									who: array_bytes::bytes2hex("0x", &who),
-									ring: ledger.staked_ring,
-									kton: 0,
-								});
+							// If checking eligibility, simply insert a record; otherwise, add the
+							// staked amount.
+							let ring = if check_eligibility { 0 } else { ledger.staked_ring };
+
+							map.entry(who).and_modify(|d| d.ring += ring).or_insert_with(|| Data {
+								who: array_bytes::bytes2hex("0x", who),
+								ring,
+								kton: 0,
+							});
 						}
-					} else if ledger.staked_kton > 0
-						&& (!check_amount || ledger.staked_kton >= KTON_THRESHOLD)
-					{
-						map.entry(who).and_modify(|d| d.kton += ledger.staked_kton).or_insert_with(
-							|| Data {
-								who: array_bytes::bytes2hex("0x", &who),
+					} else {
+						// Check if eligibility needs to be checked and if it passes the threshold,
+						if (check_eligibility && ledger.staked_kton >= KTON_THRESHOLD)
+							// or if it just needs to be greater than 0.
+							|| (!check_eligibility && ledger.staked_kton > 0)
+						{
+							// If checking eligibility, simply insert a record; otherwise, add the
+							// staked amount.
+							let kton = if check_eligibility { 0 } else { ledger.staked_kton };
+
+							map.entry(who).and_modify(|d| d.kton += kton).or_insert_with(|| Data {
+								who: array_bytes::bytes2hex("0x", who),
 								ring: 0,
-								kton: ledger.staked_kton,
-							},
-						);
+								kton,
+							});
+						}
 					}
 				},
 			)
@@ -108,11 +119,18 @@ impl Pas {
 				at,
 				dynamic::storage("Deposit", "Deposits", <Vec<()>>::new()),
 				|mut map, who, deposits: Vec<Deposit>| {
-					let staked = deposits.iter().fold(0, |acc, d| acc + d.value);
+					// If checking eligibility, simply insert a record; otherwise, add the
+					// staked amount.
+					// No threshold requirement for deposit.
+					let ring = if check_eligibility {
+						0
+					} else {
+						deposits.iter().fold(0, |acc, d| acc + d.value)
+					};
 
-					map.entry(who).and_modify(|d| d.ring += staked).or_insert_with(|| Data {
-						who: array_bytes::bytes2hex("0x", &who),
-						ring: staked,
+					map.entry(who).and_modify(|d| d.ring += ring).or_insert_with(|| Data {
+						who: array_bytes::bytes2hex("0x", who),
+						ring,
 						kton: 0,
 					});
 				},
@@ -130,11 +148,13 @@ impl Pas {
 	}
 
 	pub fn save(self) -> Result<()> {
-		let f = File::create(format!("eligible list {}.csv", Utc::now()))?;
+		let f = File::create(format!("eligible-list-{}.csv", Utc::now().format("%F-%T")))?;
 		let mut wtr = Writer::from_writer(f);
 
 		for (_, d) in Arc::try_unwrap(self.map).unwrap().into_inner() {
-			wtr.serialize(d)?;
+			if d.ring > 0 || d.kton > 0 {
+				wtr.serialize(d)?;
+			}
 		}
 
 		wtr.flush()?;

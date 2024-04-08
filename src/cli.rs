@@ -35,14 +35,6 @@ impl Cli {
 				true,
 				true,
 			),
-			// RING and deposit.
-			// 2024-01-23 16:51:00 (+UTC)
-			// https://darwinia.subscan.io/block/1910929
-			pas.snap(
-				"0x7bcab5906d0ceceec70874f7eb12093ee42122b5e4d6c8dfc613084186d5f282",
-				true,
-				false,
-			),
 			// KTON.
 			// 2023-09-26 00:00:06 (+UTC)
 			// https://darwinia.subscan.io/block/1080104
@@ -50,6 +42,14 @@ impl Cli {
 				"0x6768a1fe876999de62a0120f50190f50b126fdcf0d0bee8a83b3b692f5e47a48",
 				false,
 				true,
+			),
+			// RING and deposit.
+			// 2024-01-23 16:51:00 (+UTC)
+			// https://darwinia.subscan.io/block/1910929
+			pas.snap(
+				"0x7bcab5906d0ceceec70874f7eb12093ee42122b5e4d6c8dfc613084186d5f282",
+				true,
+				false,
 			),
 			// KTON.
 			// 2024-01-23 16:51:00 (+UTC)

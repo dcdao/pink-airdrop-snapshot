@@ -148,7 +148,7 @@ impl Pas {
 	}
 
 	pub fn save(self) -> Result<()> {
-		let f = File::create(format!("eligible-list-{}.csv", Utc::now().format("%F-%T")))?;
+		let f = File::create(format!("eligible-list-{}.csv", Utc::now().format("%F-%H-%M-%S")))?;
 		let mut wtr = Writer::from_writer(f);
 
 		for (_, d) in Arc::try_unwrap(self.map).unwrap().into_inner() {

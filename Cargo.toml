@@ -32,7 +32,7 @@ csv                = { version = "1.3" }
 futures            = { version = "0.3" }
 parity-scale-codec = { version = "3.6" }
 serde              = { version = "1.0", features = ["derive"] }
-subxt              = { version = "0.34" }
+subxt              = { version = "0.35" }
 tokio              = { version = "1.37", features = ["macros", "rt-multi-thread"] }
 tracing            = { version = "0.1" }
 tracing-subscriber = { version = "0.3" }

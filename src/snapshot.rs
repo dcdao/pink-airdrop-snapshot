@@ -104,8 +104,10 @@ impl Pas {
 				"0x2562247315cc789376da2049c6e792f689387781fd1249374ce238760547b578",
 				dynamic::storage("Deposit", "Deposits", <Vec<()>>::new()),
 				&mut deposit_eligible_list,
-				Box::new(|c: &mut HashSet<_>, k, v: Deposit| {
-					if v.value > 0 {
+				Box::new(|c: &mut HashSet<_>, k, v: Vec<Deposit>| {
+					let v = v.iter().map(|d| d.value).sum::<u128>();
+
+					if v > 0 {
 						c.insert(k);
 					}
 				}),
@@ -145,8 +147,10 @@ impl Pas {
 				"0x7bcab5906d0ceceec70874f7eb12093ee42122b5e4d6c8dfc613084186d5f282",
 				dynamic::storage("Deposit", "Deposits", <Vec<()>>::new()),
 				&mut deposit_holders_detail,
-				Box::new(|c: &mut Vec<_>, k, v: Deposit| {
-					c.push((k, v.value));
+				Box::new(|c: &mut Vec<_>, k, v: Vec<Deposit>| {
+					let v = v.iter().map(|d| d.value).sum::<u128>();
+
+					c.push((k, v));
 				}),
 			),
 		);

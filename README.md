@@ -14,5 +14,9 @@
 
 ### Usage
 ```rs
-pas --ws wss://rpc.darwinia.network
+// Create a snapshot.
+pas snap wss://rpc.darwinia.network
+
+// Format the raw airdrop list.
+pas format raw-airdrop-list.csv
 ```

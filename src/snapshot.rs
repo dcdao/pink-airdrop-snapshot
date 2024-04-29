@@ -1,8 +1,5 @@
 // std
-use std::{
-	collections::{HashMap, HashSet},
-	fs::File,
-};
+use std::collections::{HashMap, HashSet};
 // crates.io
 use anyhow::Result;
 use chrono::Utc;
@@ -204,8 +201,7 @@ impl Pas {
 		let now = Utc::now().format("%F-%H-%M-%S");
 
 		{
-			let f = File::create(format!("snapshot-ring-eligible-list-{now}.csv"))?;
-			let mut wtr = Writer::from_writer(f);
+			let mut wtr = Writer::from_path(format!("snapshot-ring-eligible-list-{now}.csv"))?;
 
 			for who in self.ring_eligible_list {
 				wtr.serialize(UserData { who })?;
@@ -215,8 +211,7 @@ impl Pas {
 		}
 
 		{
-			let f = File::create(format!("snapshot-kton-eligible-list{now}.csv"))?;
-			let mut wtr = Writer::from_writer(f);
+			let mut wtr = Writer::from_path(format!("snapshot-kton-eligible-list{now}.csv"))?;
 
 			for who in self.kton_eligible_list {
 				wtr.serialize(UserData { who })?;
@@ -226,8 +221,7 @@ impl Pas {
 		}
 
 		{
-			let f = File::create(format!("snapshot-deposit-eligible-list-{now}.csv"))?;
-			let mut wtr = Writer::from_writer(f);
+			let mut wtr = Writer::from_path(format!("snapshot-deposit-eligible-list-{now}.csv"))?;
 
 			for who in self.deposit_eligible_list {
 				wtr.serialize(UserData { who })?;
@@ -237,10 +231,8 @@ impl Pas {
 		}
 
 		{
-			let f1 = File::create(format!("snapshot-ring-holders-detail-{now}.csv"))?;
-			let f2 = File::create(format!("snapshot-kton-holders-detail-{now}.csv"))?;
-			let mut wtr1 = Writer::from_writer(f1);
-			let mut wtr2 = Writer::from_writer(f2);
+			let mut wtr1 = Writer::from_path(format!("snapshot-ring-holders-detail-{now}.csv"))?;
+			let mut wtr2 = Writer::from_path(format!("snapshot-kton-holders-detail-{now}.csv"))?;
 
 			for (who, ring, kton) in self.ring_kton_holders_detail {
 				wtr1.serialize(BasicData { who: who.clone(), amount: ring })?;
@@ -252,8 +244,7 @@ impl Pas {
 		}
 
 		{
-			let f = File::create(format!("snapshot-deposit-holders-detail-{now}.csv"))?;
-			let mut wtr = Writer::from_writer(f);
+			let mut wtr = Writer::from_path(format!("snapshot-deposit-holders-detail-{now}.csv"))?;
 
 			for (who, ring) in self.deposit_holders_detail {
 				wtr.serialize(BasicData { who, amount: ring })?;
@@ -263,8 +254,7 @@ impl Pas {
 		}
 
 		{
-			let f = File::create(format!("eligible-list-{now}.csv"))?;
-			let mut wtr = Writer::from_writer(f);
+			let mut wtr = Writer::from_path(format!("eligible-list-{now}.csv"))?;
 
 			for (_, d) in self.data {
 				if d.ring > 0 || d.kton > 0 {

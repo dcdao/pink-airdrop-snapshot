@@ -2,7 +2,7 @@
 use anyhow::Result;
 use clap::Parser;
 // pas
-use crate::snapshot::Pas;
+use crate::{format, snapshot::Pas};
 
 #[derive(Debug, Parser)]
 #[command(
@@ -17,14 +17,32 @@ use crate::snapshot::Pas;
 	rename_all = "kebab",
 )]
 pub struct Cli {
-	/// Websocket endpoint.
-	#[arg(long, value_name = "URI")]
-	pub ws: String,
+	#[command(subcommand)]
+	pub subcmd: SubCmd,
 }
 impl Cli {
 	pub async fn run(&self) -> Result<()> {
-		Pas::new(&self.ws).await?.snap().await?.merge().save()?;
+		match &self.subcmd {
+			SubCmd::Snap { ws } => Pas::new(ws).await?.snap().await?.merge().save()?,
+			SubCmd::Format { path } => format::format(path)?,
+		}
 
 		Ok(())
 	}
+}
+
+#[derive(Debug, Parser)]
+pub enum SubCmd {
+	/// Create the snapshot from a live chain.
+	Snap {
+		/// Websocket endpoint.
+		#[clap(value_name = "URI")]
+		ws: String,
+	},
+	/// Reformat the CSV airdrop list to adhere to the specifications required by safe-airdrop.
+	Format {
+		/// Path to the CSV file.
+		#[clap(value_name = "PATH")]
+		path: String,
+	},
 }

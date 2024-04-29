@@ -1,4 +1,5 @@
 mod cli;
+mod format;
 mod snapshot;
 
 // crates.io

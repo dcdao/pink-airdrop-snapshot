@@ -14,7 +14,7 @@ pub fn format(path: &str) -> Result<()> {
 	for result in rdr.records() {
 		let record = result?;
 		let receiver = &record[0];
-		let amount = record[3].parse::<f64>()? / 1_000_000_000.;
+		let amount = record[3].parse::<f64>()? / 10_000_000_000.;
 
 		sum += amount;
 
